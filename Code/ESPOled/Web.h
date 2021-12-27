@@ -8,6 +8,7 @@ void WIFIInit() {
   }
   Serial.println();
   Serial.println(WiFi.localIP());
+
 }
 
 void notFound(AsyncWebServerRequest *request) {
@@ -15,16 +16,14 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length) {
-  switch (type)
-  {
+  switch (type) {
     case WStype_DISCONNECTED: Serial.printf("[%u] Disconnected!\n", num); break;
     case WStype_CONNECTED: {
         IPAddress ip = websocket.remoteIP(num);
         Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
         for (uint8_t i = 0; i < DataLength; i++) {
-          myWeath = myData.ReadData(i);
-          String message = "{\"temperature\":" + (String)myWeath.temperature + ",\"pressure\":" + (String)myWeath.pressure +
-                           ",\"time\":\"" + myWeath.time + "\"}";
+          String message = "{\"temperature\":" + (String)myWeath[i].temperature + ",\"pressure\":" + (String)myWeath[i].pressure +
+                           ",\"time\":\"" + myWeath[i].time + "\"}";
           websocket.sendTXT(num, message);
         }
       }
@@ -32,6 +31,11 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_TEXT: {
         Serial.printf("[%u] get Text: %s\n", num, payload);
         String message = String((char*)( payload));
+        if (abs(SECOND - jsonExtract(message, "Second").toInt()) > 2) {
+          YEAR = jsonExtract(message, "Year").toInt(), MONTH = jsonExtract(message, "Month").toInt(), DATE = jsonExtract(message, "Date").toInt();
+          HOUR = jsonExtract(message, "Hour").toInt(), MINUTE = jsonExtract(message, "Minute").toInt(), SECOND = jsonExtract(message, "Second").toInt();
+          rtc.adjust(DateTime(YEAR, MONTH, DATE, HOUR, MINUTE, SECOND));
+        }
       }
       break;
   }

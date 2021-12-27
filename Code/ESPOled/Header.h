@@ -3,7 +3,7 @@ uint16_t YEAR;
 uint8_t ButtonPin1 = 0, ButtonPin2 = 19, ButtonPin3 = 18;
 uint8_t Mode;
 uint8_t DataLength;
-boolean isDisplay;
+boolean isDisplay = true;
 
 BME280I2C bme;
 RTC_DS3231 rtc;
@@ -12,11 +12,12 @@ cButton Button1(ButtonPin1);
 cButton Button2(ButtonPin2);
 cButton Button3(ButtonPin3);
 
-cData myData;
-WeathData myWeath;
+const uint8_t DataSize = 24;
+WeathData myWeath[DataSize];
+cData myData(myWeath, DataSize);
 
-const char* ssid = "510";
-const char* password = "510lab666";
+const char* ssid = "HIPAA";
+const char* password = "123456789";
 AsyncWebServer server(80);
 WebSocketsServer websocket(81);
 

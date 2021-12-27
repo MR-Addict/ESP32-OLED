@@ -1,7 +1,8 @@
+#include <WiFi.h>
 #include <Wire.h>
-#include <EEPROM.h>
 #include <FastLED.h>
 #include <SPIFFS.h>
+#include <jsonlib.h>
 #include <WebSocketsServer.h>
 #include <ESPAsyncWebServer.h>
 
@@ -13,7 +14,7 @@
 #include <Fonts/DSEG7_Classic_Bold_15.h>
 #include <Fonts/FreeMono9pt7b.h>
 
-#include "ROMData.h"
+#include "MyData.h"
 #include "Button.h"
 #include "Header.h"
 #include "Web.h"

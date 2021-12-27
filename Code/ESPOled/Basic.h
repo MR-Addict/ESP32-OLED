@@ -1,7 +1,6 @@
 void SetupInit() {
   Serial.begin(115200);
 
-  EEPROM.begin(28 * 24);
   DataLength = myData.GetDataLength();
   Wire.begin();
 
@@ -10,18 +9,17 @@ void SetupInit() {
   YEAR = now.year(), MONTH = now.month(), DATE = now.day();
   HOUR = now.hour(), MINUTE = now.minute(), SECOND = now.second();
 
+  bme.begin();
   display.begin(SSD1306_SWITCHCAPVCC, 0x3C);
   display.setTextColor(WHITE);
   display.setTextSize(1);
-  display.ssd1306_command(SSD1306_DISPLAYOFF);
 
-  bme.begin();
 }
 
 void DisplayTime() {
   static boolean flag;
   String TimeData;
-  EVERY_N_HOURS(1) {
+  EVERY_N_SECONDS(1) {
     flag = !flag;
     DateTime now = rtc.now();
     YEAR = now.year(), MONTH = now.month(), DATE = now.day();
@@ -107,7 +105,7 @@ void SendData() {
                      HOUR + ':' + MINUTE + ':' + SECOND + "\"}";
     websocket.broadcastTXT(message);
     String TIME = (String)YEAR + '-' + (String)MONTH + '-' + (String)DATE + ' ' + (String)HOUR + ':' + (String)MINUTE + ':' + (String)SECOND;
-    myData.PushData(temp, hum, TIME);
+    myData.PushData(temp, pres, TIME);
     DataLength = myData.GetDataLength();
   }
 }
