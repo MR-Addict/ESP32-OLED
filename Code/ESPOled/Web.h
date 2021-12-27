@@ -31,11 +31,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * payload, size_t length
     case WStype_TEXT: {
         Serial.printf("[%u] get Text: %s\n", num, payload);
         String message = String((char*)( payload));
-        if (abs(SECOND - jsonExtract(message, "Second").toInt()) > 2) {
-          YEAR = jsonExtract(message, "Year").toInt(), MONTH = jsonExtract(message, "Month").toInt(), DATE = jsonExtract(message, "Date").toInt();
-          HOUR = jsonExtract(message, "Hour").toInt(), MINUTE = jsonExtract(message, "Minute").toInt(), SECOND = jsonExtract(message, "Second").toInt();
-          rtc.adjust(DateTime(YEAR, MONTH, DATE, HOUR, MINUTE, SECOND));
-        }
       }
       break;
   }

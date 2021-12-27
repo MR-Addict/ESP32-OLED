@@ -1,4 +1,4 @@
-uint8_t MONTH, DATE, HOUR, MINUTE, SECOND;
+uint8_t MONTH, DATE, HOUR, MINUTE, SECOND, DayOfTheWeek;
 uint16_t YEAR;
 uint8_t ButtonPin1 = 0, ButtonPin2 = 19, ButtonPin3 = 18;
 uint8_t Mode;
@@ -13,6 +13,7 @@ cButton Button2(ButtonPin2);
 cButton Button3(ButtonPin3);
 
 const uint8_t DataSize = 24;
+WeathData ReturnData;
 WeathData myWeath[DataSize];
 cData myData(myWeath, DataSize);
 

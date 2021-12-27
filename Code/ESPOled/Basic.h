@@ -16,15 +16,27 @@ void SetupInit() {
 
 }
 
+void UpdateData() {
+  EVERY_N_SECONDS(1) {
+    DateTime now = rtc.now();
+    YEAR = now.year(), MONTH = now.month(), DATE = now.day();
+    HOUR = now.hour(), MINUTE = now.minute(), SECOND = now.second(), DayOfTheWeek = now.dayOfTheWeek();
+
+    float temp(NAN), hum(NAN), pres(NAN);
+    BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
+    BME280::PresUnit presUnit(BME280::PresUnit_Pa);
+    bme.read(pres, temp, hum, tempUnit, presUnit);
+
+    String TIME = (String)YEAR + '-' + (String)MONTH + '-' + (String)DATE + ' ' + (String)HOUR + ':' + (String)MINUTE + ':' + (String)SECOND;
+    ReturnData.temperature = temp, ReturnData.pressure = pres, ReturnData.time = TIME;
+  }
+}
+
 void DisplayTime() {
   static boolean flag;
   String TimeData;
   EVERY_N_SECONDS(1) {
     flag = !flag;
-    DateTime now = rtc.now();
-    YEAR = now.year(), MONTH = now.month(), DATE = now.day();
-    HOUR = now.hour(), MINUTE = now.minute(), SECOND = now.second();
-
     if (HOUR < 10)TimeData += '0' + (String)HOUR;
     else TimeData += (String)HOUR;
     if (flag)TimeData += ':';
@@ -39,7 +51,7 @@ void DisplayTime() {
 
     display.setFont(&FreeMono9pt7b);
     display.setCursor(92, 31);
-    display.print(daysOfTheWeek[now.dayOfTheWeek()]);
+    display.print(daysOfTheWeek[DayOfTheWeek]);
     display.display();
   }
 }
@@ -47,14 +59,9 @@ void DisplayTime() {
 void DisplayTemp() {
   EVERY_N_SECONDS(1) {
     String TempData;
-    float temp(NAN), hum(NAN), pres(NAN);
-    BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-    BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-    bme.read(pres, temp, hum, tempUnit, presUnit);
-
-    if (temp < 0)TempData = '-';
-    else if (temp < 10)TempData = '0';
-    TempData += (uint8_t)temp;
+    if (ReturnData.temperature < 0)TempData = '-';
+    else if (ReturnData.temperature < 10)TempData = '0';
+    TempData += (uint8_t)ReturnData.temperature;
 
     display.clearDisplay();
     display.drawBitmap(0, 1, Temperature, 32, 32, WHITE);
@@ -63,7 +70,7 @@ void DisplayTemp() {
     display.print(TempData);
     display.print('.');
     display.setFont(&DSEG7_Classic_Bold_15);
-    display.print(((uint8_t)(temp * 100)) % 100 < 10 ? '0' + (String)(((uint8_t)(temp * 100)) % 100) : ((uint8_t)(temp * 100)) % 100);
+    display.print(((uint8_t)(ReturnData.temperature * 100)) % 100 < 10 ? '0' + (String)(((uint8_t)(ReturnData.temperature * 100)) % 100) : ((uint8_t)(ReturnData.temperature * 100)) % 100);
     display.setFont(&DSEG7_Classic_Bold_25);
     display.print("-C");
     display.display();
@@ -72,22 +79,16 @@ void DisplayTemp() {
 
 void DisplayPressure() {
   EVERY_N_SECONDS(1) {
-    String TempData;
-    float temp(NAN), hum(NAN), pres(NAN);
-    BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-    BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-    bme.read(pres, temp, hum, tempUnit, presUnit);
-
     display.clearDisplay();
     display.drawBitmap(0, 1, Pressure, 40, 32, WHITE);
     display.setFont(&DSEG7_Classic_Bold_25);
     display.setCursor(28, 31);
-    display.print(((uint32_t)pres) / 100000);
+    display.print(((uint32_t)ReturnData.pressure) / 100000);
     display.print('.');
     display.setFont(&DSEG7_Classic_Bold_15);
-    display.print((((uint32_t)pres) % 100000) / 10000);
-    display.print((((uint32_t)pres) % 10000) / 1000);
-    display.print((((uint32_t)pres) % 1000) / 100);
+    display.print((((uint32_t)ReturnData.pressure) % 100000) / 10000);
+    display.print((((uint32_t)ReturnData.pressure) % 10000) / 1000);
+    display.print((((uint32_t)ReturnData.pressure) % 1000) / 100);
     display.setFont(&FreeMono9pt7b);
     display.print("atm");
     display.display();
@@ -96,16 +97,10 @@ void DisplayPressure() {
 
 void SendData() {
   EVERY_N_HOURS(1) {
-    float temp(NAN), hum(NAN), pres(NAN);
-    BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-    BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-    bme.read(pres, temp, hum, tempUnit, presUnit);
-    String message = "{\"temperature\":" + (String)temp + ",\"pressure\":" + (String)pres +
-                     ",\"time\":\"" + YEAR + '-' + MONTH + '-' + DATE + ' ' +
-                     HOUR + ':' + MINUTE + ':' + SECOND + "\"}";
+    String message = "{\"temperature\":" + (String)ReturnData.temperature + ",\"pressure\":" + (String)ReturnData.pressure +
+                     ",\"time\":\"" + (String)ReturnData.time + "\"}";
     websocket.broadcastTXT(message);
-    String TIME = (String)YEAR + '-' + (String)MONTH + '-' + (String)DATE + ' ' + (String)HOUR + ':' + (String)MINUTE + ':' + (String)SECOND;
-    myData.PushData(temp, pres, TIME);
+    myData.PushData(ReturnData.temperature, ReturnData.pressure, ReturnData.time);
     DataLength = myData.GetDataLength();
   }
 }
@@ -129,5 +124,16 @@ void GetButtons() {
   if (isDisplay) {
     if (Button2.isPressed() && Mode > 0)Mode--;
     else if (Button3.isPressed() && Mode < 3)Mode ++;
+  }
+}
+
+void OLED() {
+  if (isDisplay) {
+    switch (Mode) {
+      case 0: DisplayTime(); break;
+      case 1: DisplayTemp(); break;
+      case 2: DisplayPressure(); break;
+      case 3: DisplayIP(); break;
+    }
   }
 }

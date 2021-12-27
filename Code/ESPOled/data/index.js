@@ -54,22 +54,6 @@ websocket.onerror = function (event) {
 };
 function onOpen(event) {
   console.log("Server Connected!");
-  var today = new Date();
-  var MYJSON =
-    '{"Year":' +
-    today.getFullYear() +
-    ',"Month":' +
-    (today.getMonth() + 1) +
-    ',"Date":' +
-    today.getDate() +
-    ',"Hour":' +
-    today.getHours() +
-    ',"Minute":' +
-    today.getMinutes() +
-    ',"Second":' +
-    today.getSeconds() +
-    "}";
-  websocket.send(MYJSON);
 }
 function onClose(event) {
   console.log("Server Disconnected!");

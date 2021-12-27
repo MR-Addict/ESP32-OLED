@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <FastLED.h>
 #include <SPIFFS.h>
-#include <jsonlib.h>
 #include <WebSocketsServer.h>
 #include <ESPAsyncWebServer.h>
 
@@ -28,15 +27,9 @@ void setup() {
 
 void loop() {
   GetButtons();
+  UpdateData();
   SendData();
   GetButtons();
-  if (isDisplay) {
-    switch (Mode) {
-      case 0: DisplayTime(); break;
-      case 1: DisplayTemp(); break;
-      case 2: DisplayPressure(); break;
-      case 3: DisplayIP(); break;
-    }
-  }
+  OLED();
   websocket.loop();
 }
