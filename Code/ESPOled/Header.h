@@ -16,8 +16,8 @@ const uint8_t DataSize = 24;
 WeathData myWeath[DataSize];
 cData myData(myWeath, DataSize);
 
-const char* ssid = "HIPAA";
-const char* password = "123456789";
+const char* ssid = "510";
+const char* password = "510lab666";
 AsyncWebServer server(80);
 WebSocketsServer websocket(81);
 
